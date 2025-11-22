@@ -17,7 +17,8 @@ export default function Home() {
   const runCheck = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5001/api/check-brand-list", {
+      // const res = await fetch("http://localhost:5001/api/check-brand-list", {
+      const res = await fetch("https://googlegenerativeai-backend-geminiapikey4.up.railway.app/api/check-brand-list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, brand })
