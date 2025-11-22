@@ -24,3 +24,110 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media (max-width: 768px) {
+  .min-h-screen {
+    padding: 1rem;
+  }
+
+  .text-5xl {
+    font-size: 2.5rem; /* Smaller heading for tablets */
+  }
+
+  .max-w-4xl, .max-w-5xl {
+    max-width: 95%; /* Adjust max-width for smaller screens */
+  }
+
+  .text-xl {
+    font-size: 1.25rem; /* Smaller button text */
+  }
+
+  .text-lg {
+    font-size: 1rem; /* Smaller input/button text */
+  }
+}
+
+@media (max-width: 480px) {
+  .text-5xl {
+    font-size: 2rem; /* Even smaller heading for mobile */
+  }
+
+  .p-8 {
+    padding: 1rem; /* Reduce padding on mobile */
+  }
+
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    --tw-space-y-reverse: 0;
+    margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse))) !important;
+    margin-bottom: calc(1rem * var(--tw-space-y-reverse)) !important;
+  }
+
+  .flex-col {
+    flex-direction: column;
+  }
+
+  .flex-row {
+    flex-direction: column;
+  }
+
+  .gap-4 > :not([hidden]) ~ :not([hidden]) {
+    --tw-gap-x-reverse: 0;
+    margin-right: calc(0px * var(--tw-gap-x-reverse));
+    margin-left: calc(0px * calc(1 - var(--tw-gap-x-reverse)));
+    --tw-gap-y-reverse: 0;
+    margin-top: calc(1rem * calc(1 - var(--tw-gap-y-reverse)));
+    margin-bottom: calc(1rem * var(--tw-gap-y-reverse));
+  }
+
+  .px-8 {
+    padding-left: 1.5rem; /* Adjust button padding */
+    padding-right: 1.5rem;
+  }
+
+  .py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    border: 1px solid #ccc;
+    margin-bottom: 0.5rem;
+  }
+
+  td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+    text-align: right;
+  }
+
+  td:before {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: bold;
+  }
+
+  /*
+  Label the data
+  */
+  td:nth-of-type(1):before { content: "Prompt"; }
+  td:nth-of-type(2):before { content: "Brand"; }
+  td:nth-of-type(3):before { content: "Mentioned"; }
+  td:nth-of-type(4):before { content: "Position"; }
+}

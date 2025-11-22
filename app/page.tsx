@@ -1,65 +1,124 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+
+interface BrandCheckResult {
+  prompt: string;
+  brand: string;
+  mentioned: boolean;
+  position: number;
+}
 
 export default function Home() {
+  const [prompt, setPrompt] = useState("");
+  const [brand, setBrand] = useState("");
+  const [results, setResults] = useState<BrandCheckResult[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const runCheck = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5001/api/check-brand-list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, brand })
+      });
+
+      const data = await res.json();
+      const parsedData = {
+        ...data,
+        mentioned: data.mentioned === "Yes" || data.mentioned === true // Convert string "Yes" to true, keep boolean true as true
+      };
+      setResults(prev => [...prev, parsedData]);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadCSV = () => {
+    const header = "Prompt,Brand,Mentioned,Position\n";
+    const rows = results
+      .map(r => `${r.prompt},${r.brand},${r.mentioned},${r.position}`)
+      .join("\n");
+
+    const blob = new Blob([header + rows], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "results.csv";
+    a.click();
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-blue-100 p-8 flex flex-col items-center justify-center">
+      <h1 className="text-5xl font-extrabold mb-10 text-gray-900 drop-shadow-lg">Gemini brand mention checker</h1>
+
+      <div className="w-full max-w-4xl bg-white shadow-xl rounded-3xl p-8 space-y-6 mb-8 border border-gray-200">
+        <textarea
+          placeholder="Enter your prompt..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          className="w-full min-h-[140px] p-4 border border-gray-300 rounded-xl focus:ring-3 focus:ring-blue-500 outline-none text-lg resize-y"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        <input
+          placeholder="Brand name"
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+          className="w-full p-4 border border-gray-300 rounded-xl focus:ring-3 focus:ring-blue-500 outline-none text-lg"
+        />
+
+        <button
+          onClick={runCheck}
+          disabled={loading}
+          className={`w-full bg-blue-700 text-white font-bold rounded-xl text-xl py-4 transition duration-300 ease-in-out ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-800 transform hover:-translate-y-1 hover:shadow-lg"}`}
+        >
+          {loading ? "Running Check..." : "Run Check"}
+        </button>
+
+        {loading && (
+          <div className="flex justify-center items-center mt-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+            <p className="ml-3 text-gray-600">Processing...</p>
+          </div>
+        )}
+
+      </div>
+
+      <div className="flex gap-4 mb-8">
+        <button
+          onClick={downloadCSV}
+          disabled={results.length === 0 || loading}
+          className={`bg-green-600 text-white font-bold rounded-xl text-lg px-8 py-3 transition duration-300 ease-in-out ${results.length === 0 || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700 transform hover:-translate-y-1 hover:shadow-lg"}`}
+        >
+          Download CSV
+        </button>
+      </div>
+
+      <div className="w-full max-w-5xl bg-white shadow-xl rounded-2xl p-6 overflow-x-auto border border-gray-200">
+        <table className="min-w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-100 border-b border-gray-300">
+              <th className="p-4 text-gray-700 font-semibold uppercase tracking-wider">Prompt</th>
+              <th className="p-4 text-gray-700 font-semibold uppercase tracking-wider">Brand</th>
+              <th className="p-4 text-gray-700 font-semibold uppercase tracking-wider">Mentioned</th>
+              <th className="p-4 text-gray-700 font-semibold uppercase tracking-wider">Position</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r, i) => (
+              <tr key={i} className={`${i % 2 === 0 ? "bg-white" : "bg-gray-50"} border-b border-gray-200 hover:bg-gray-100 transition-colors`} >
+                <td className="p-4 text-gray-800">{r.prompt}</td>
+                <td className="p-4 text-gray-800">{r.brand}</td>
+                <td className="p-4 text-gray-800">{r.mentioned === null || r.mentioned === undefined ? "N/A" : r.mentioned ? "Yes" : "No"}</td>
+                <td className="p-4 text-gray-800">{r.position}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
